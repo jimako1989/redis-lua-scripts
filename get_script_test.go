@@ -3,7 +3,6 @@ package rediscript
 import (
 	"fmt"
 	"log"
-	"os"
 	"testing"
 	"time"
 
@@ -13,14 +12,15 @@ import (
 
 var (
 	dockerRes *dockertest.Resource
-	conn      redis.Conn
+	redisPool *redis.Pool
 )
 
 func TestMain(m *testing.M) {
 	setup()
 
 	defer dockerRes.Close()
-	os.Exit(m.Run())
+
+	m.Run()
 }
 
 func setup() {
@@ -33,19 +33,25 @@ func setup() {
 		log.Fatal("could not start resource, " + err.Error())
 	}
 
-	for {
-		conn, err = redis.DialURL(fmt.Sprintf("redis://localhost:%s", dockerRes.GetPort("6379/tcp")))
-		if err == nil {
-			break
-		} else {
-			time.Sleep(time.Second)
-		}
+	redisPool = &redis.Pool{
+		MaxIdle:     3,
+		MaxActive:   0,
+		IdleTimeout: 240 * time.Second,
+		Dial: func() (redis.Conn, error) {
+			c, err := redis.DialURL(fmt.Sprintf("redis://localhost:%s", dockerRes.GetPort("6379/tcp")))
+			if err != nil {
+				return nil, err
+			}
+			return c, err
+		},
 	}
 }
 
 func TestScriptTTLAT(t *testing.T) {
-	TTL := int64(100)
+	conn := redisPool.Get()
 	defer conn.Close()
+
+	TTL := int64(100)
 
 	script_ttlat, err := GetScript(1, "ttlat.lua")
 	if err != nil {
@@ -66,8 +72,10 @@ func TestScriptTTLAT(t *testing.T) {
 }
 
 func TestScriptHSETEX(t *testing.T) {
-	TTL := 100
+	conn := redisPool.Get()
 	defer conn.Close()
+
+	TTL := 100
 
 	script_hsetex, err := GetScript(1, "hsetex.lua")
 	if err != nil {
@@ -87,8 +95,10 @@ func TestScriptHSETEX(t *testing.T) {
 }
 
 func TestScriptHSETPEX(t *testing.T) {
-	TTL := 2000.0
+	conn := redisPool.Get()
 	defer conn.Close()
+
+	TTL := 2000.0
 
 	script_hsetpex, err := GetScript(1, "hsetpex.lua")
 	if err != nil {
@@ -109,8 +119,10 @@ func TestScriptHSETPEX(t *testing.T) {
 }
 
 func TestScriptHINCRBYEX(t *testing.T) {
-	TTL := 100
+	conn := redisPool.Get()
 	defer conn.Close()
+
+	TTL := 100
 
 	conn.Do("HSET", "key", "field", 1)
 
@@ -138,8 +150,10 @@ func TestScriptHINCRBYEX(t *testing.T) {
 }
 
 func TestScriptHINCRBYPEX(t *testing.T) {
-	TTL := 2000.0
+	conn := redisPool.Get()
 	defer conn.Close()
+
+	TTL := 2000.0
 
 	conn.Do("HSET", "key", "field", 1)
 

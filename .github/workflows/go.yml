@@ -12,10 +12,11 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-    - name: Install packages before test
-      run: |
-        apt-get update
-        apt-get install -y gcc
+    # - name: Install packages before test
+    #   run: |
+    #     rm -rf /var/lib/apt/lists/lock
+    #     apt-get update
+    #     apt-get install -y gcc
 
     - name: Set up Go 1.x
       uses: actions/setup-go@v2

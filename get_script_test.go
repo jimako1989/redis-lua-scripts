@@ -3,7 +3,6 @@ package rediscript
 import (
 	"fmt"
 	"log"
-	"os"
 	"testing"
 	"time"
 
@@ -20,7 +19,9 @@ func TestMain(m *testing.M) {
 	setup()
 
 	defer dockerRes.Close()
-	os.Exit(m.Run())
+	defer conn.Close()
+
+	m.Run()
 }
 
 func setup() {
@@ -45,7 +46,6 @@ func setup() {
 
 func TestScriptTTLAT(t *testing.T) {
 	TTL := int64(100)
-	defer conn.Close()
 
 	script_ttlat, err := GetScript(1, "ttlat.lua")
 	if err != nil {
@@ -67,7 +67,6 @@ func TestScriptTTLAT(t *testing.T) {
 
 func TestScriptHSETEX(t *testing.T) {
 	TTL := 100
-	defer conn.Close()
 
 	script_hsetex, err := GetScript(1, "hsetex.lua")
 	if err != nil {
@@ -88,7 +87,6 @@ func TestScriptHSETEX(t *testing.T) {
 
 func TestScriptHSETPEX(t *testing.T) {
 	TTL := 2000.0
-	defer conn.Close()
 
 	script_hsetpex, err := GetScript(1, "hsetpex.lua")
 	if err != nil {
@@ -110,7 +108,6 @@ func TestScriptHSETPEX(t *testing.T) {
 
 func TestScriptHINCRBYEX(t *testing.T) {
 	TTL := 100
-	defer conn.Close()
 
 	conn.Do("HSET", "key", "field", 1)
 
@@ -139,7 +136,6 @@ func TestScriptHINCRBYEX(t *testing.T) {
 
 func TestScriptHINCRBYPEX(t *testing.T) {
 	TTL := 2000.0
-	defer conn.Close()
 
 	conn.Do("HSET", "key", "field", 1)
 

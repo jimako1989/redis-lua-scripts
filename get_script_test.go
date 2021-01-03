@@ -71,28 +71,34 @@ func TestScriptTTLAT(t *testing.T) {
 	}
 }
 
-// func TestScriptHSETEX(t *testing.T) {
-// 	conn := redisPool.Get()
-// 	defer conn.Close()
+func TestScriptHSETXP(t *testing.T) {
+	conn := redisPool.Get()
+	defer conn.Close()
 
-// 	TTL := 100
+	TTL := 1
 
-// 	script_hsetex, err := GetScript("lua/hashes_xp/1_hsetxp.lua")
-// 	if err != nil {
-// 		t.Fatalf("error connection to script, %v", err)
-// 	}
+	script, err := GetScript("hashes_xp/2_hsetxp.lua")
+	if err != nil {
+		t.Fatalf("error connection to script, %v", err)
+	}
 
-// 	_, err = script_hsetex.Do(conn, "key", "field", "value", TTL)
-// 	if err != nil {
-// 		t.Fatalf("error to hsetex, %v", err)
-// 	}
+	_, err = script.Do(conn, "key", TTL, "field", "value")
+	if err != nil {
+		t.Fatalf("error to hsetex, %v", err)
+	}
 
-// 	ttl, err := redis.Int(conn.Do("TTL", "key"))
+	b, err := redis.Bool(conn.Do("HEXISTS", "key", "field"))
+	if !b {
+		t.Fatalf("failed to HEXISTS because the field doesn't exist, should exist")
+	}
 
-// 	if ttl != TTL {
-// 		t.Fatalf("error, actual: %v, expected: %v", ttl, TTL)
-// 	}
-// }
+	time.Sleep(time.Second)
+
+	b, err = redis.Bool(conn.Do("HEXISTS", "key", "field"))
+	if b {
+		t.Fatalf("failed to HEXISTS because the field exists, should not exist")
+	}
+}
 
 // func TestScriptHSETPEX(t *testing.T) {
 // 	conn := redisPool.Get()
@@ -100,7 +106,7 @@ func TestScriptTTLAT(t *testing.T) {
 
 // 	TTL := 2000.0
 
-// 	script_hsetpex, err := GetScript("1_hsetpex.lua")
+// 	script_hsetpex, err := GetScript("hashes_xp/1_hsetpex.lua")
 // 	if err != nil {
 // 		t.Fatalf("error connection to script, %v", err)
 // 	}
@@ -126,7 +132,7 @@ func TestScriptTTLAT(t *testing.T) {
 
 // 	conn.Do("HSET", "key", "field", 1)
 
-// 	script_hincrbyex, err := GetScript(1, "hincrbyex.lua")
+// 	script_hincrbyex, err := GetScript("hashes_xp/hincrbyex.lua")
 // 	if err != nil {
 // 		t.Fatalf("error connection to script, %v", err)
 // 	}
@@ -157,7 +163,7 @@ func TestScriptTTLAT(t *testing.T) {
 
 // 	conn.Do("HSET", "key", "field", 1)
 
-// 	script_hincrbyex, err := GetScript(1, "hincrbypex.lua")
+// 	script_hincrbyex, err := GetScript("hashes_xp/hincrbypex.lua")
 // 	if err != nil {
 // 		t.Fatalf("error connection to script, %v", err)
 // 	}

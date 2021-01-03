@@ -24,15 +24,5 @@ func GetScript(path string) (*redis.Script, error) {
 		return nil, err
 	}
 
-	// res, err := http.Get(URL + path)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// body, err := ioutil.ReadAll(res.Body)
-	// res.Body.Close()
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	return redis.NewScript(keyCount, string(body)), nil
 }

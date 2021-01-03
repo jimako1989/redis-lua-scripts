@@ -13,6 +13,7 @@ import (
 var (
 	dockerRes *dockertest.Resource
 	redisPool *redis.Pool
+	TTL       = int64(2)
 )
 
 func TestMain(m *testing.M) {
@@ -34,7 +35,7 @@ func setup() {
 	}
 
 	redisPool = &redis.Pool{
-		MaxIdle:     3,
+		MaxIdle:     5,
 		MaxActive:   0,
 		IdleTimeout: 240 * time.Second,
 		Dial: func() (redis.Conn, error) {
@@ -51,19 +52,20 @@ func TestScriptTTLAT(t *testing.T) {
 	conn := redisPool.Get()
 	defer conn.Close()
 
-	TTL := int64(100)
-
 	script_ttlat, err := GetScript("util/1_ttlat.lua")
 	if err != nil {
 		t.Fatalf("error connection to script, %v", err)
 	}
 
-	conn.Do("SETEX", "Alice", TTL, "Bob")
+	_, err = conn.Do("SETEX", "Alice", fmt.Sprint(TTL), "Bob")
+	if err != nil {
+		t.Fatalf("failed to SETEX, %v", err)
+	}
 
 	now := time.Now().Unix()
 	expireAt, err := redis.Int64(script_ttlat.Do(conn, "Alice"))
 	if err != nil {
-		t.Fatalf("error while doing script, %v", err.Error())
+		t.Fatalf("error while doing script, %v", err)
 	}
 
 	if expireAt != now+TTL {
@@ -75,114 +77,53 @@ func TestScriptHSETXP(t *testing.T) {
 	conn := redisPool.Get()
 	defer conn.Close()
 
-	TTL := 1
-
 	script, err := GetScript("hashes_xp/2_hsetxp.lua")
 	if err != nil {
 		t.Fatalf("error connection to script, %v", err)
 	}
 
-	_, err = script.Do(conn, "key", TTL, "field", "value")
+	r, err := redis.Bool(script.Do(conn, "key", fmt.Sprint(TTL), "field", "value"))
 	if err != nil {
-		t.Fatalf("error to hsetex, %v", err)
+		t.Fatalf("error to hsetxp, %v", err)
+	}
+	if !r {
+		t.Fatalf("failed hsetxp")
 	}
 
 	b, err := redis.Bool(conn.Do("HEXISTS", "key", "field"))
 	if !b {
 		t.Fatalf("failed to HEXISTS because the field doesn't exist, should exist")
 	}
-
-	time.Sleep(time.Second)
-
-	b, err = redis.Bool(conn.Do("HEXISTS", "key", "field"))
-	if b {
-		t.Fatalf("failed to HEXISTS because the field exists, should not exist")
-	}
 }
 
-// func TestScriptHSETPEX(t *testing.T) {
-// 	conn := redisPool.Get()
-// 	defer conn.Close()
+func TestScriptHMGETXP(t *testing.T) {
+	conn := redisPool.Get()
+	defer conn.Close()
 
-// 	TTL := 2000.0
+	TestScriptHSETXP(t)
 
-// 	script_hsetpex, err := GetScript("hashes_xp/1_hsetpex.lua")
-// 	if err != nil {
-// 		t.Fatalf("error connection to script, %v", err)
-// 	}
+	script, err := GetScript("hashes_xp/1_hmgetxp.lua")
+	if err != nil {
+		t.Fatalf("error connection to script, %v", err)
+	}
 
-// 	_, err = script_hsetpex.Do(conn, "key", "field", "value", TTL)
-// 	if err != nil {
-// 		t.Fatalf("error to hsetpex, %v", err)
-// 	}
+	s, err := redis.Strings(script.Do(conn, "key", "field"))
+	if err != nil {
+		t.Fatalf("error to hmgetxp, %v", err)
+	}
 
-// 	_ttl, err := redis.Int(conn.Do("PTTL", "key"))
-// 	ttl := float64(_ttl)
+	if s[0] != "value" {
+		t.Fatalf("can't find the field. expect: value, but actual: %v", s)
+	}
 
-// 	if ttl > TTL || ttl < TTL*0.99 {
-// 		t.Fatalf("error, actual: %v, expected: %v", ttl, TTL)
-// 	}
-// }
+	time.Sleep(time.Duration(TTL+1) * time.Second)
 
-// func TestScriptHINCRBYEX(t *testing.T) {
-// 	conn := redisPool.Get()
-// 	defer conn.Close()
+	s, err = redis.Strings(script.Do(conn, "key", "field"))
+	if err != nil {
+		t.Fatalf("error to hmgetxp, %v", err)
+	}
 
-// 	TTL := 100
-
-// 	conn.Do("HSET", "key", "field", 1)
-
-// 	script_hincrbyex, err := GetScript("hashes_xp/hincrbyex.lua")
-// 	if err != nil {
-// 		t.Fatalf("error connection to script, %v", err)
-// 	}
-
-// 	_, err = script_hincrbyex.Do(conn, "key", "field", 99, TTL)
-// 	if err != nil {
-// 		t.Fatalf("error to hincrbyex, %v", err)
-// 	}
-
-// 	ttl, err := redis.Int(conn.Do("TTL", "key"))
-
-// 	if ttl != TTL {
-// 		t.Fatalf("error, actual: %v, expected: %v", ttl, TTL)
-// 	}
-
-// 	num, err := redis.Int(conn.Do("HGET", "key", "field"))
-
-// 	if num != 100 {
-// 		t.Fatalf("error, actual: %v, expected: 100", num)
-// 	}
-// }
-
-// func TestScriptHINCRBYPEX(t *testing.T) {
-// 	conn := redisPool.Get()
-// 	defer conn.Close()
-
-// 	TTL := 2000.0
-
-// 	conn.Do("HSET", "key", "field", 1)
-
-// 	script_hincrbyex, err := GetScript("hashes_xp/hincrbypex.lua")
-// 	if err != nil {
-// 		t.Fatalf("error connection to script, %v", err)
-// 	}
-
-// 	_, err = script_hincrbyex.Do(conn, "key", "field", 99, TTL)
-// 	if err != nil {
-// 		t.Fatalf("error to hincrbypex, %v", err)
-// 	}
-
-// 	_ttl, err := redis.Int(conn.Do("PTTL", "key"))
-// 	ttl := float64(_ttl)
-
-// 	if ttl > TTL || ttl < TTL*0.99 {
-// 		t.Fatalf("error, actual: %v, expected: %v", ttl, TTL)
-// 	}
-
-// 	num, err := redis.Int(conn.Do("HGET", "key", "field"))
-
-// 	if num != 100 {
-// 		t.Fatalf("error, actual: %v, expected: 100", num)
-// 	}
-// }
+	if len(s) != 0 {
+		t.Fatalf("found the value. expect: empty, but actual: %v", s)
+	}
+}

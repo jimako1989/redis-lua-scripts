@@ -3,6 +3,9 @@ package rediscript
 import (
 	"io/ioutil"
 	"net/http"
+	"os"
+	"strconv"
+	"strings"
 
 	"github.com/gomodule/redigo/redis"
 )
@@ -11,8 +14,17 @@ const (
 	URL = "https://raw.githubusercontent.com/jimako1989/redis-lua-scripts/main/"
 )
 
-func GetScript(keyCount int, fname string) (*redis.Script, error) {
-	res, err := http.Get(URL + fname)
+var (
+	BRANCH_NAME = os.Getenv("CURRENT_BRANCH")
+)
+
+func GetScript(path string) (*redis.Script, error) {
+	splitPath := strings.Split(path, "/")
+	keyCount, err := strconv.Atoi(string(splitPath[len(splitPath)-1][0]))
+	if err != nil {
+		return nil, err
+	}
+	res, err := http.Get(URL + path)
 	if err != nil {
 		return nil, err
 	}

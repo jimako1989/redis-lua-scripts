@@ -53,7 +53,7 @@ func TestScriptTTLAT(t *testing.T) {
 
 	TTL := int64(100)
 
-	script_ttlat, err := GetScript("lua/util/1_ttlat.lua")
+	script_ttlat, err := GetScript("util/1_ttlat.lua")
 	if err != nil {
 		t.Fatalf("error connection to script, %v", err)
 	}

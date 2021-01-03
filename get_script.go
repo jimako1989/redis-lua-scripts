@@ -2,8 +2,6 @@ package rediscript
 
 import (
 	"io/ioutil"
-	"net/http"
-	"os"
 	"strconv"
 	"strings"
 
@@ -14,25 +12,27 @@ const (
 	URL = "https://raw.githubusercontent.com/jimako1989/redis-lua-scripts/main/"
 )
 
-var (
-	BRANCH_NAME = os.Getenv("CURRENT_BRANCH")
-)
-
 func GetScript(path string) (*redis.Script, error) {
 	splitPath := strings.Split(path, "/")
 	keyCount, err := strconv.Atoi(string(splitPath[len(splitPath)-1][0]))
 	if err != nil {
 		return nil, err
 	}
-	res, err := http.Get(URL + path)
+
+	body, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	body, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
-	if err != nil {
-		return nil, err
-	}
+
+	// res, err := http.Get(URL + path)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// body, err := ioutil.ReadAll(res.Body)
+	// res.Body.Close()
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	return redis.NewScript(keyCount, string(body)), nil
 }

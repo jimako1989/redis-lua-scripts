@@ -11,13 +11,9 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    env:
+      CGO_ENABLED: 0
     steps:
-    - name: Install packages before test
-      run: |
-        # rm -rf /var/lib/apt/lists/lock
-        apt-get update
-        apt-get install -y git
-
     - name: Set up Go 1.x
       uses: actions/setup-go@v2
       with:
@@ -36,5 +32,4 @@ jobs:
 
     - name: Test
       run: |
-        export CURRENT_BRANCH="$(git branch --contains | cut -b 3-)"
         go test -v ./...

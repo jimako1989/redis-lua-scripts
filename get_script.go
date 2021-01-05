@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	URL = "https://raw.githubusercontent.com/jimako1989/redis-lua-scripts/main/"
+	URL = "https://raw.githubusercontent.com/tk42/redis-lua-scripts/main/"
 )
 
 func GetScript(path string) (*redis.Script, error) {
@@ -19,7 +19,7 @@ func GetScript(path string) (*redis.Script, error) {
 		return nil, err
 	}
 
-	body, err := ioutil.ReadFile("lua/" + path)
+	body, err := ioutil.ReadFile("lua/" + strings.ToUpper(path))
 	if err != nil {
 		return nil, err
 	}

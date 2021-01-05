@@ -4,7 +4,6 @@
 local HSET_EXPIREAT_KEY = KEYS[1]..".EXPIREAT"
 local expireAt = tonumber(KEYS[2])
 
--- get the list of fields in arguments, also values
 local k = ""
 for i, v in ipairs(ARGV) do
     if i % 2 == 1 then

@@ -5,7 +5,7 @@
 local HSET_EXPIREAT_KEY = KEYS[1]..".EXPIREAT"
 local now = tonumber(redis.call('TIME')[1])
 
--- get the list of fields in arguments, also values
+-- get the list of values in arguments
 local values = {}
 local skip = false
 for i, field in ipairs(ARGV) do

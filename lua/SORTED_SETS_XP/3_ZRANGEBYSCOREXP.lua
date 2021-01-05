@@ -17,7 +17,7 @@ for i, v in ipairs(redis.pcall('ZRANGE', ZSET_EXPIREAT_KEY, 0, -1, "WITHSCORES")
     end
 end
 
-for i, v in ipairs(redis.call('ZRANGEBYSCORE', KEYS[1], KEYS[2], KEYS[3], unpack(ARGV))) do
+for i, v in ipairs(redis.pcall('ZRANGEBYSCORE', KEYS[1], KEYS[2], KEYS[3], unpack(ARGV))) do
     if ARGV[1] == "WITHSCORES" then
         if i % 2 == 1 then
             k = v

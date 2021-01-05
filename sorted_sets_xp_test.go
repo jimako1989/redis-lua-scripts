@@ -224,3 +224,42 @@ func TestZREVRANGEXP(t *testing.T) {
 		t.Fatalf("error to ZRANGEXP, expect %v: %v, but actual: %v", "member2", "234.5", s[1])
 	}
 }
+
+func TestZRANGEBYSCOREXP(t *testing.T) {
+	TestZADDXP(t)
+
+	conn := redisPool.Get()
+	defer conn.Close()
+
+	script, err := GetScript("SORTED_SETS_XP/2_ZADDXP")
+	if err != nil {
+		t.Fatalf("error connection to script, %v", err)
+	}
+
+	r, err := redis.Bool(script.Do(conn, "key", fmt.Sprint(TTL), score234, "member2"))
+	if err != nil {
+		t.Fatalf("error to ZADDXP, %v", err)
+	}
+	if !r {
+		t.Fatalf("failed ZADDXP")
+	}
+
+	script, err = GetScript("SORTED_SETS_XP/3_ZRANGEBYSCOREXP")
+	if err != nil {
+		t.Fatalf("error connection to script, %v", err)
+	}
+
+	s, err := redis.Strings(script.Do(conn, "key", 122.9, 234.6))
+	if err != nil {
+		t.Fatalf("failed to ZRANGEBYSCOREXP, %v", err)
+	}
+	if len(s) != 2 {
+		t.Fatalf("error to ZRANGEBYSCOREXP, expect #member: 2, but actual: %v", s)
+	}
+	if s[0] != "member" {
+		t.Fatalf("error to ZRANGEBYSCOREXP, expect: %v, but actual: %v", "member", s[0])
+	}
+	if s[1] != "member2" {
+		t.Fatalf("error to ZRANGEBYSCOREXP, expect: %v, but actual: %v", "member2", s[1])
+	}
+}

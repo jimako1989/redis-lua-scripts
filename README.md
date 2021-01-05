@@ -28,3 +28,14 @@ b, err := redis.Bool(conn.Do("HEXISTS", "key", "field"))
 
 #### SORTED_SETS_XP
 Group ```SORTED_SETS_XP``` is SortedSets with EXPIREAT by each member.
+```SORTED_SETS_XP``` creates two sorted sets as well, one of those is normal sorted set containing the key and fields, the other one sorted set has time of the field expire at, whose key of the hash set is “<key>.EXPIREAT”.
+```go
+// To load lua script, execute GetScript
+script, err := GetScript("SORTED_SETS_XP/2_ZADDXP")
+
+// ZADDXP key expire(secs) field value
+_, err := redis.Bool(script.Do(conn, "key", "10", "1.3", "member"))
+
+// check it works! f is 1.3
+f, err := redis.Float64(conn.Do("ZSCORE", "key", "member"))
+```

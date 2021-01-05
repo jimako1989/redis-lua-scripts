@@ -12,12 +12,12 @@ A curated library of Redis Lua scripts
 ### Examples
 
 #### HASHES_XP
-Group ```HASHES_XP``` is HASHES with EXPIREAT by each field.
+Group ```HASHES_XP``` is Hashes with EXPIREAT by each field.
 Although you can set ```EXPIRE``` to ```HASHES```, hash set will expire by key so that you’ll discard all fields associated with the key as well.
 To avoid that, ```HASHES_XP``` creates two hash sets, one of those is normal hash set containing the key and fields, the other one hash set has time of the field expire at, whose key of the hash set is “<key>.EXPIREAT”.
 ```go
 // To load lua script, execute GetScript
-script, err := GetScript("HASHES_XP/2_HSETXP.lua")
+script, err := GetScript("HASHES_XP/2_HSETXP")
 
 // HSETXP key expire(secs) field value
 _, err := redis.Bool(script.Do(conn, "key", "10", "field", "value"))
@@ -25,3 +25,6 @@ _, err := redis.Bool(script.Do(conn, "key", "10", "field", "value"))
 // check it works! b is true
 b, err := redis.Bool(conn.Do("HEXISTS", "key", "field"))
 ```
+
+#### SORTED_SETS_XP
+Group ```SORTED_SETS_XP``` is SortedSets with EXPIREAT by each member.

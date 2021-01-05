@@ -7,20 +7,16 @@ local now = tonumber(redis.call('TIME')[1])
 
 local c = 0
 local m = ""
-local skip = false
 for i, v in ipairs(redis.call('ZRANGE', ZSET_EXPIREAT_KEY, 0, -1, "WITHSCORES")) do
     if i % 2 == 1 then
         m = v
+    else
         if tonumber(v) < now then
             redis.call('ZREM', KEYS[1], m)
             redis.call('ZREM', ZSET_EXPIREAT_KEY, m)
-            skip = true
-        end
-    else
-        if not skip then
+        else
             c = c + 1
         end
-        skip = false
     end
 end
 

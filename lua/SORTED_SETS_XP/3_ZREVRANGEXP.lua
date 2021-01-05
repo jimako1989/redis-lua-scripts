@@ -8,11 +8,20 @@ local now = tonumber(redis.call('TIME')[1])
 local results = {}
 local k = ""
 local skip = false
-for i, v in ipairs(redis.call('ZREVRANGE', KEYS[1], KEYS[2], KEYS[3], ARGV[1])) do
+local expireAt = {}
+for i, v in ipairs(redis.pcall('ZRANGE', ZSET_EXPIREAT_KEY, 0, -1, "WITHSCORES")) do
+    if i % 2 == 1 then
+        k = v
+    else
+        expireAt[k]=v
+    end
+end
+
+for i, v in ipairs(redis.pcall('ZREVRANGE', KEYS[1], KEYS[2], KEYS[3], unpack(ARGV))) do
     if ARGV[1] == "WITHSCORES" then
-        if i % 2 == 0 then
+        if i % 2 == 1 then
             k = v
-            if tonumber(redis.call('ZSCORE', ZSET_EXPIREAT_KEY, k)) < now then
+            if tonumber(expireAt[k]) < now then
                 redis.call('ZREM', KEYS[1], k)
                 redis.call('ZREM', ZSET_EXPIREAT_KEY, k)
                 skip = true
@@ -26,7 +35,7 @@ for i, v in ipairs(redis.call('ZREVRANGE', KEYS[1], KEYS[2], KEYS[3], ARGV[1])) 
             skip = false
         end
     else
-        if tonumber(redis.call('ZSCORE', ZSET_EXPIREAT_KEY, v)) < now then
+        if tonumber(expireAt[v]) < now then
             redis.call('ZREM', KEYS[1], v)
             redis.call('ZREM', ZSET_EXPIREAT_KEY, v)
         else

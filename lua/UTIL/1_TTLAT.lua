@@ -1,4 +1,5 @@
--- Returns a key's ExpireAt Time
+-- TTLAT key
+--- This command returns a key's ExpireAt Time
 
 local t = tonumber(redis.call('TTL', KEYS[1]))
 if t > 0 then

@@ -1,12 +1,12 @@
 -- HASH SETS with EXPIRE by fields
--- HGETALLXP key
----- This command returns fields and values still alive
+-- HVALSXP key
+---- This command returns values still alive
 
 local HSET_EXPIREAT_KEY = KEYS[1]..".EXPIREAT"
 local now = tonumber(redis.call('TIME')[1])
 
--- get the list of fields in arguments, also values
-local field_values = {}
+-- get the list of values in arguments
+local values = {}
 local k = ""
 local skip = false
 for i, v in ipairs(redis.call('HGETALL', KEYS[1])) do
@@ -18,10 +18,12 @@ for i, v in ipairs(redis.call('HGETALL', KEYS[1])) do
             redis.call('HDEL', HSET_EXPIREAT_KEY, k)
             skip = true
         end
-    elseif not skip then
-        table.insert(field_values, v)
+    else
+        if not skip then
+            table.insert(values, v)
+        end
         skip = false
     end
 end
 
-return field_values
+return values

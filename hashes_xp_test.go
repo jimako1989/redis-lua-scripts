@@ -32,11 +32,10 @@ func TestHSETXP(t *testing.T) {
 }
 
 func TestHMGETXP(t *testing.T) {
-	conn := redisPool.Get()
-	defer conn.Close()
-
 	TestHSETXP(t)
 
+	conn := redisPool.Get()
+	defer conn.Close()
 	script, err := GetScript("HASHES_XP/1_HMGETXP")
 	if err != nil {
 		t.Fatalf("error connection to script, %v", err)
@@ -54,6 +53,71 @@ func TestHMGETXP(t *testing.T) {
 	time.Sleep(time.Duration(TTL+1) * time.Second)
 
 	s, err = redis.Strings(script.Do(conn, "key", "field"))
+	if err != nil {
+		t.Fatalf("error to HMGETXP, %v", err)
+	}
+
+	if len(s) != 0 {
+		t.Fatalf("found the value. expect: empty, but actual: %v", s)
+	}
+}
+
+func TestHGETALLXP(t *testing.T) {
+	TestHSETXP(t)
+
+	conn := redisPool.Get()
+	defer conn.Close()
+	script, err := GetScript("HASHES_XP/1_HGETALLXP")
+	if err != nil {
+		t.Fatalf("error connection to script, %v", err)
+	}
+
+	s, err := redis.Strings(script.Do(conn, "key"))
+	if err != nil {
+		t.Fatalf("error to HMGETXP, %v", err)
+	}
+
+	if s[0] != "field" {
+		t.Fatalf("can't find the field. expect: field, but actual: %v", s)
+	}
+	if s[1] != "value" {
+		t.Fatalf("can't find the field. expect: value, but actual: %v", s)
+	}
+
+	time.Sleep(time.Duration(TTL+1) * time.Second)
+
+	s, err = redis.Strings(script.Do(conn, "key"))
+	if err != nil {
+		t.Fatalf("error to HMGETXP, %v", err)
+	}
+
+	if len(s) != 0 {
+		t.Fatalf("found the value. expect: empty, but actual: %v", s)
+	}
+}
+
+func TestHVALSXP(t *testing.T) {
+	TestHSETXP(t)
+
+	conn := redisPool.Get()
+	defer conn.Close()
+	script, err := GetScript("HASHES_XP/1_HVALSXP")
+	if err != nil {
+		t.Fatalf("error connection to script, %v", err)
+	}
+
+	s, err := redis.Strings(script.Do(conn, "key"))
+	if err != nil {
+		t.Fatalf("error to HMGETXP, %v", err)
+	}
+
+	if s[0] != "value" {
+		t.Fatalf("can't find the field. expect: value, but actual: %v", s)
+	}
+
+	time.Sleep(time.Duration(TTL+1) * time.Second)
+
+	s, err = redis.Strings(script.Do(conn, "key"))
 	if err != nil {
 		t.Fatalf("error to HMGETXP, %v", err)
 	}

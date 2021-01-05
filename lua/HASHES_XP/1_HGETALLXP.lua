@@ -17,9 +17,13 @@ for i, v in ipairs(redis.call('HGETALL', KEYS[1])) do
             redis.call('HDEL', KEYS[1], k)
             redis.call('HDEL', HSET_EXPIREAT_KEY, k)
             skip = true
+        else
+            table.insert(field_values, k)
         end
-    elseif not skip then
-        table.insert(field_values, v)
+    else
+        if not skip then
+            table.insert(field_values, v)
+        end
         skip = false
     end
 end

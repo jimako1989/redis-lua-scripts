@@ -12,7 +12,7 @@ func TestTTLAT(t *testing.T) {
 	conn := redisPool.Get()
 	defer conn.Close()
 
-	script_ttlat, err := GetScript("UTIL/1_TTLAT.lua")
+	script_ttlat, err := GetScript("UTIL/1_TTLAT")
 	if err != nil {
 		t.Fatalf("error connection to script, %v", err)
 	}

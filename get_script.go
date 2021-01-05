@@ -19,7 +19,7 @@ func GetScript(path string) (*redis.Script, error) {
 		return nil, err
 	}
 
-	body, err := ioutil.ReadFile("lua/" + strings.ToUpper(path))
+	body, err := ioutil.ReadFile("lua/" + strings.ToUpper(path) + ".lua")
 	if err != nil {
 		return nil, err
 	}

@@ -12,7 +12,7 @@ func TestHSETXP(t *testing.T) {
 	conn := redisPool.Get()
 	defer conn.Close()
 
-	script, err := GetScript("HASHES_XP/2_HSETXP.lua")
+	script, err := GetScript("HASHES_XP/2_HSETXP")
 	if err != nil {
 		t.Fatalf("error connection to script, %v", err)
 	}
@@ -37,7 +37,7 @@ func TestHMGETXP(t *testing.T) {
 
 	TestHSETXP(t)
 
-	script, err := GetScript("HASHES_XP/1_HMGETXP.lua")
+	script, err := GetScript("HASHES_XP/1_HMGETXP")
 	if err != nil {
 		t.Fatalf("error connection to script, %v", err)
 	}

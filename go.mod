@@ -1,4 +1,4 @@
-module github.com/jimako1989/redis-lua-scripts
+module github.com/tk42/redis-lua-scripts
 
 go 1.15
 

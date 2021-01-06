@@ -16,6 +16,7 @@ func TestGetAllScripts(t *testing.T) {
 	if len(scripts) != 13 {
 		t.Fatalf("invalid the number of scripts, expect: 13, actual: %v", len(scripts))
 	}
+	fmt.Print(scripts["ZADDXP"])
 }
 
 func TestTTLAT(t *testing.T) {

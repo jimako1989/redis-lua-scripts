@@ -23,20 +23,20 @@ func GetScript(path string) (*redis.Script, error) {
 	return redis.NewScript(keyCount, string(body)), nil
 }
 
-func GetAllScripts(group string) ([]*redis.Script, error) {
+func GetAllScripts(group string) (map[string]*redis.Script, error) {
 	files, err := ioutil.ReadDir("lua/" + string(group))
 	if err != nil {
 		return nil, err
 	}
 
-	var scripts []*redis.Script
+	scripts := make(map[string]*redis.Script)
 	for _, file := range files {
 		name := file.Name()
 		script, err := GetScript(string(group) + "/" + name[:len(name)-4])
 		if err != nil {
 			return nil, err
 		}
-		scripts = append(scripts, script)
+		scripts[name[2:len(name)-4]] = script
 	}
 	return scripts, nil
 }

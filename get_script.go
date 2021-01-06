@@ -8,10 +8,6 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
-const (
-	URL = "https://raw.githubusercontent.com/tk42/redis-lua-scripts/main/"
-)
-
 func GetScript(path string) (*redis.Script, error) {
 	splitPath := strings.Split(path, "/")
 	keyCount, err := strconv.Atoi(string(splitPath[len(splitPath)-1][0]))
@@ -25,4 +21,22 @@ func GetScript(path string) (*redis.Script, error) {
 	}
 
 	return redis.NewScript(keyCount, string(body)), nil
+}
+
+func GetAllScripts(group string) ([]*redis.Script, error) {
+	files, err := ioutil.ReadDir("lua/" + string(group))
+	if err != nil {
+		return nil, err
+	}
+
+	var scripts []*redis.Script
+	for _, file := range files {
+		name := file.Name()
+		script, err := GetScript(string(group) + "/" + name[:len(name)-4])
+		if err != nil {
+			return nil, err
+		}
+		scripts = append(scripts, script)
+	}
+	return scripts, nil
 }

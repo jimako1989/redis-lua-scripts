@@ -39,3 +39,9 @@ _, err := redis.Bool(script.Do(conn, "key", "10", "1.3", "member"))
 // check it works! f is 1.3
 f, err := redis.Float64(conn.Do("ZSCORE", "key", "member"))
 ```
+
+#### GetAllScripts
+func ```GetAllScripts``` enables loading all scripts of the group specified.
+```go
+scripts, err := GetAllScripts("SORTED_SETS_XP")
+```

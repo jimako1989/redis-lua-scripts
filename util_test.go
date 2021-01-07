@@ -13,7 +13,7 @@ func TestGetAllScripts(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error connection to script, %v", err)
 	}
-	if len(scripts) != 13 {
+	if len(scripts) != 17 {
 		t.Fatalf("invalid the number of scripts, expect: 13, actual: %v", len(scripts))
 	}
 	fmt.Print(scripts["ZADDXP"])

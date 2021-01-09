@@ -126,3 +126,28 @@ func TestHVALSXP(t *testing.T) {
 		t.Fatalf("found the value. expect: empty, but actual: %v", s)
 	}
 }
+
+func TestHDELXP(t *testing.T) {
+	TestHSETXP(t)
+
+	conn := redisPool.Get()
+	defer conn.Close()
+
+	script, err := GetScript("HASHES_XP/1_HDELXP")
+	if err != nil {
+		t.Fatalf("error connection to script, %v", err)
+	}
+
+	r, err := redis.Bool(script.Do(conn, "key", "field"))
+	if err != nil {
+		t.Fatalf("error to HDELXP, %v", err)
+	}
+	if !r {
+		t.Fatalf("failed HDELXP")
+	}
+
+	b, err := redis.Bool(conn.Do("HEXISTS", "key", "field"))
+	if b {
+		t.Fatalf("failed to HEXISTS because the field exists, shouldn't exist")
+	}
+}

@@ -1,21 +1,28 @@
 package rediscript
 
 import (
+	"fmt"
 	"io/ioutil"
+	"path"
+	"runtime"
 	"strconv"
 	"strings"
 
 	"github.com/gomodule/redigo/redis"
 )
 
-func GetScript(path string) (*redis.Script, error) {
-	splitPath := strings.Split(path, "/")
+func GetScript(filepath string) (*redis.Script, error) {
+	splitPath := strings.Split(filepath, "/")
 	keyCount, err := strconv.Atoi(string(splitPath[len(splitPath)-1][0]))
 	if err != nil {
 		return nil, err
 	}
 
-	body, err := ioutil.ReadFile("lua/" + strings.ToUpper(path) + ".lua")
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		return nil, fmt.Errorf("failed to call runtime.Caller(0)")
+	}
+	body, err := ioutil.ReadFile(path.Dir(file) + "/lua/" + strings.ToUpper(filepath) + ".lua")
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +31,11 @@ func GetScript(path string) (*redis.Script, error) {
 }
 
 func GetAllScripts(group string) (map[string]*redis.Script, error) {
-	files, err := ioutil.ReadDir("lua/" + string(group))
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		return nil, fmt.Errorf("failed to call runtime.Caller(0)")
+	}
+	files, err := ioutil.ReadDir(path.Dir(file) + "/lua/" + string(group))
 	if err != nil {
 		return nil, err
 	}

@@ -9,7 +9,7 @@ local now = tonumber(redis.call('TIME')[1])
 local field_values = {}
 local k = ""
 local skip = false
-for i, v in ipairs(redis.call('HGETALL', KEYS[1])) do
+for i, v in pairs(redis.call('HGETALL', KEYS[1])) do
     if i % 2 == 1 then
         k = v
         -- get expireAt if the field exists and delete it if expired

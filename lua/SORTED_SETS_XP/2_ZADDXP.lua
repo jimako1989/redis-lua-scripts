@@ -6,7 +6,7 @@ local ZSET_EXPIREAT_KEY = KEYS[1]..".EXPIREAT"
 local expireAt = tonumber(redis.call('TIME')[1]) + tonumber(KEYS[2])
 
 local s = "" -- score
-for i, v in ipairs(ARGV) do
+for i, v in pairs(ARGV) do
     if i % 2 == 1 then
         s = v
     else

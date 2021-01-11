@@ -9,7 +9,7 @@ local results = {}
 local k = ""
 local skip = false
 
-for i, v in ipairs(redis.pcall('ZRANGE', KEYS[1], KEYS[2], KEYS[3], unpack(ARGV))) do
+for i, v in pairs(redis.pcall('ZRANGE', KEYS[1], KEYS[2], KEYS[3], unpack(ARGV))) do
     if ARGV[1] == "WITHSCORES" then
         if i % 2 == 1 then
             k = v

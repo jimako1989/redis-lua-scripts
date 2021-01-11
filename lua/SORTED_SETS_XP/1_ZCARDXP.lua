@@ -7,7 +7,7 @@ local now = tonumber(redis.call('TIME')[1])
 
 local c = 0
 local m = ""
-for i, v in ipairs(redis.call('ZRANGE', ZSET_EXPIREAT_KEY, 0, -1, "WITHSCORES")) do
+for i, v in pairs(redis.call('ZRANGE', ZSET_EXPIREAT_KEY, 0, -1, "WITHSCORES")) do
     if i % 2 == 1 then
         m = v
     else

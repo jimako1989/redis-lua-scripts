@@ -6,13 +6,16 @@ local ZSET_EXPIREAT_KEY = KEYS[1]..".EXPIREAT"
 local now = tonumber(redis.call('TIME')[1])
 
 local results = {}
+local expireAt = nil
+
 for i, v in pairs(redis.call('LRANGE', KEYS[1], KEYS[2], KEYS[3])) do
-    if tonumber(redis.call('ZSCORE', ZSET_EXPIREAT_KEY, v)) < now then
+    expireAt = redis.call('ZSCORE', ZSET_EXPIREAT_KEY, v)
+    if expireAt == nil then
+    elseif tonumber(expireAt) < now then
         redis.call('ZREM', ZSET_SCORE_KEY, v)
         redis.call('ZREM', ZSET_EXPIREAT_KEY, v)
     else
         table.insert(results, v)
     end
 end
-
 return results

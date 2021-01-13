@@ -9,9 +9,9 @@ local results = {}
 local expireAt = nil
 
 for i, v in pairs(redis.call('LRANGE', KEYS[1], KEYS[2], KEYS[3])) do
-    expireAt = redis.call('ZSCORE', ZSET_EXPIREAT_KEY, v)
-    if expireAt == nil then
-    elseif tonumber(expireAt) < now then
+    expireAt = tonumber(redis.call('ZSCORE', ZSET_EXPIREAT_KEY, v))
+    if type(expireAt) ~= "number" then
+    elseif expireAt < now then
         redis.call('ZREM', ZSET_SCORE_KEY, v)
         redis.call('ZREM', ZSET_EXPIREAT_KEY, v)
     else

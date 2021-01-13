@@ -8,7 +8,19 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
+func setup_SortedListsXP() {
+	conn := redisPool.Get()
+	defer conn.Close()
+	script, _ := GetScript("SORTED_LISTS_XP/1_ZLDELXP")
+	b, _ := redis.Bool(script.Do(conn, "keyy", 0, -1))
+	if !b {
+		panic("Failed to ZLDELXP")
+	}
+}
+
 func TestZLPUSHXP(t *testing.T) {
+	setup_SortedListsXP()
+
 	script, err := GetScript("SORTED_LISTS_XP/2_ZLPUSHXP")
 	if err != nil {
 		t.Fatalf("error connection to script, %v", err)
@@ -17,7 +29,7 @@ func TestZLPUSHXP(t *testing.T) {
 	conn := redisPool.Get()
 	defer conn.Close()
 
-	r, err := redis.Bool(script.Do(conn, "key", fmt.Sprint(TTL), 10.0, "field"))
+	r, err := redis.Bool(script.Do(conn, "keyy", fmt.Sprint(TTL), 10.0, "fieldd"))
 	if err != nil {
 		t.Fatalf("error to ZLPUSHXP, %v", err)
 	}
@@ -26,12 +38,15 @@ func TestZLPUSHXP(t *testing.T) {
 	}
 
 	script, _ = GetScript("SORTED_LISTS_XP/3_ZLRANGEXP")
-	s, err := redis.Strings(script.Do(conn, "key", 0, -1))
+	s, err := redis.Strings(script.Do(conn, "keyy", 0, -1))
 	if err != nil {
 		t.Fatalf("error to ZLRANGEXP, %v", err)
 	}
-	if s[0] != "field" {
-		t.Fatalf("expect: field, gots %v", s)
+	if len(s) != 1 {
+		t.Fatalf("expect: 1, gots %v", len(s))
+	}
+	if s[0] != "fieldd" {
+		t.Fatalf("expect: fieldd, gots %v", s)
 	}
 }
 
@@ -42,12 +57,12 @@ func TestZLPOPXP(t *testing.T) {
 	defer conn.Close()
 
 	script, _ := GetScript("SORTED_LISTS_XP/1_ZLPOPXP")
-	s, err := redis.String(script.Do(conn, "key"))
+	s, err := redis.String(script.Do(conn, "keyy"))
 	if err != nil {
 		t.Fatalf("error to ZLPOPXP, %v", err)
 	}
-	if s != "field" {
-		t.Fatalf("expect: field, gots %v", s)
+	if s != "fieldd" {
+		t.Fatalf("expect: fieldd, gots %v", s)
 	}
 }
 
@@ -60,7 +75,7 @@ func TestExpire(t *testing.T) {
 	defer conn.Close()
 
 	script, _ := GetScript("SORTED_LISTS_XP/3_ZLRANGEXP")
-	s, err := redis.Strings(script.Do(conn, "key", 0, -1))
+	s, err := redis.Strings(script.Do(conn, "keyy", 0, -1))
 	if err != nil {
 		t.Fatalf("error to ZLRANGEXP, %v", err)
 	}
@@ -76,21 +91,21 @@ func TestZLRANGEBYSCOREXP(t *testing.T) {
 	defer conn.Close()
 
 	script, _ := GetScript("SORTED_LISTS_XP/2_ZLPUSHXP")
-	_, err := redis.Bool(script.Do(conn, "key", fmt.Sprint(TTL), 123, "field2"))
+	_, err := redis.Bool(script.Do(conn, "keyy", fmt.Sprint(TTL), 123, "fieldd2"))
 	if err != nil {
 		t.Fatalf("error to ZLPOPXP, %v", err)
 	}
 
 	script, _ = GetScript("SORTED_LISTS_XP/3_ZLRANGEBYSCOREXP")
-	s, err := redis.Strings(script.Do(conn, "key", 0, 200))
+	s, err := redis.Strings(script.Do(conn, "keyy", 0, 200))
 	if err != nil {
 		t.Fatalf("error to ZLRANGEXP, %v", err)
 	}
 	if len(s) != 2 {
 		t.Fatalf("expect: 2, gots %v. %v", len(s), s)
 	}
-	if s[0] != "field" && s[1] != "field2" {
-		t.Fatalf("expect: [field, field2], gots %v", s)
+	if s[0] != "fieldd" && s[1] != "fieldd2" {
+		t.Fatalf("expect: [fieldd, fieldd2], gots %v", s)
 	}
 }
 
@@ -101,20 +116,20 @@ func TestZLREVRANGEBYSCOREXP(t *testing.T) {
 	defer conn.Close()
 
 	script, _ := GetScript("SORTED_LISTS_XP/2_ZLPUSHXP")
-	_, err := redis.Bool(script.Do(conn, "key", fmt.Sprint(TTL), 123, "field2"))
+	_, err := redis.Bool(script.Do(conn, "keyy", fmt.Sprint(TTL), 123, "fieldd2"))
 	if err != nil {
 		t.Fatalf("error to ZLPOPXP, %v", err)
 	}
 
 	script, _ = GetScript("SORTED_LISTS_XP/3_ZLREVRANGEBYSCOREXP")
-	s, err := redis.Strings(script.Do(conn, "key", 200, 0))
+	s, err := redis.Strings(script.Do(conn, "keyy", 200, 0))
 	if err != nil {
 		t.Fatalf("error to ZLREVRANGEBYSCOREXP, %v", err)
 	}
 	if len(s) != 2 {
 		t.Fatalf("expect: 2, gots %v. %v", len(s), s)
 	}
-	if s[0] != "field2" && s[1] != "field" {
-		t.Fatalf("expect: [field2, field], gots %v", s)
+	if s[0] != "fieldd2" && s[1] != "fieldd" {
+		t.Fatalf("expect: [fieldd2, fieldd], gots %v", s)
 	}
 }
